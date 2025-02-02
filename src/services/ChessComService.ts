@@ -15,10 +15,11 @@ export interface Game {
     time_class: string;
 }
 
-interface BlunderAnalysis {
+export interface BlunderAnalysis {
     position: string;
     move: string;
     evaluation: number;
+    frequency: number;  // Added this field to match the expected type
 }
 
 export class ChessComService {
@@ -110,7 +111,8 @@ export class ChessComService {
                         blunders.push({
                             position: chess.fen(),
                             move: `${Math.floor(moveIndex/2) + 1}${moveIndex % 2 === 0 ? '.' : '...'} ${move.san}`,
-                            evaluation: evalDiff
+                            evaluation: evalDiff,
+                            frequency: 1 // Initialize frequency
                         });
                     }
                     

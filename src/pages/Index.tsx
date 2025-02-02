@@ -4,13 +4,7 @@ import { AnalysisPanel } from "../components/AnalysisPanel";
 import { PremiumBanner } from "../components/PremiumBanner";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { ChessComService } from "../services/ChessComService";
-
-interface BlunderAnalysis {
-  position: string;
-  move: string;
-  evaluation: number;
-}
+import { ChessComService, BlunderAnalysis } from "../services/ChessComService";
 
 export default function Index() {
   const [username, setUsername] = useState("");
@@ -43,7 +37,7 @@ export default function Index() {
       const allBlunders = results.flatMap(game => game.blunders);
       
       // Group similar blunders by position and count their frequency
-      const blunderFrequencyMap = new Map<string, BlunderAnalysis & { frequency: number }>();
+      const blunderFrequencyMap = new Map<string, BlunderAnalysis>();
       allBlunders.forEach(blunder => {
         const key = blunder.position;
         const existing = blunderFrequencyMap.get(key);
