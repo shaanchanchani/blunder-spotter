@@ -2,14 +2,21 @@ import { useEffect, useState } from "react";
 import { AnalysisBoard } from "../components/AnalysisBoard";
 import { AnalysisPanel } from "../components/AnalysisPanel";
 import { PremiumBanner } from "../components/PremiumBanner";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ChessComService } from "../services/ChessComService";
+
+interface BlunderAnalysis {
+  position: string;
+  move: string;
+  evaluation: number;
+}
 
 export default function Index() {
   const [username, setUsername] = useState("");
   const [isPremium, setIsPremium] = useState(false);
   const [currentPosition, setCurrentPosition] = useState("start");
+  const [blunders, setBlunders] = useState<BlunderAnalysis[]>([]);
   const { toast } = useToast();
 
   const handleAnalyze = async () => {
@@ -31,6 +38,27 @@ export default function Index() {
       const games = await ChessComService.getPlayerGames(username);
       const results = await ChessComService.analyzeBlunders(games);
       console.log("Analysis results:", results);
+      
+      // Extract and combine all blunders from all games
+      const allBlunders = results.flatMap(game => game.blunders);
+      
+      // Group similar blunders by position and count their frequency
+      const blunderFrequencyMap = new Map<string, BlunderAnalysis & { frequency: number }>();
+      allBlunders.forEach(blunder => {
+        const key = blunder.position;
+        const existing = blunderFrequencyMap.get(key);
+        if (existing) {
+          existing.frequency += 1;
+        } else {
+          blunderFrequencyMap.set(key, { ...blunder, frequency: 1 });
+        }
+      });
+
+      // Convert to array and sort by frequency
+      const sortedBlunders = Array.from(blunderFrequencyMap.values())
+        .sort((a, b) => b.frequency - a.frequency);
+
+      setBlunders(sortedBlunders);
       
       toast({
         title: "Analysis Complete",
@@ -83,7 +111,11 @@ export default function Index() {
                 </div>
               </div>
 
-              <AnalysisPanel isPremium={isPremium} />
+              <AnalysisPanel 
+                isPremium={isPremium} 
+                blunders={blunders}
+                onPositionSelect={(position) => setCurrentPosition(position)}
+              />
               
               {!isPremium && <PremiumBanner />}
             </div>
